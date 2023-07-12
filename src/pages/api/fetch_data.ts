@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const {songName} = req.query;
 
     try {
-        const highscore = await prisma.data.findFirst({
+        let highscore = await prisma.data.findFirst({
             where: {
                 songName
             },
@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
         });
 
-        const mostRecents = await prisma.data.findMany({
+        let mostRecents = await prisma.data.findMany({
             where: {
                 songName
             },
@@ -42,6 +42,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
             take: 5
         });
+
+        const allCreatedUsers = await prisma.createdUsers.findMany();
+
+        // replace username with real username
+        highscore = {
+            ...highscore,
+            username: allCreatedUsers.find(user => user.hash === highscore.username)?.username
+        }
+
+        mostRecents = mostRecents.map(record => {
+            return {
+                ...record,
+                username: allCreatedUsers.find(user => user.hash === record.username)?.username
+            }
+        });
+
         res.status(200).json({highscore, mostRecents});
     } catch (e) {
         res.status(500).json({error: e.toString()});

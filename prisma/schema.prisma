@@ -17,3 +17,8 @@ model Data {
   score     Float
   timestamp DateTime @default(now())
 }
+
+model CreatedUsers {
+  hash     String @id
+  username String @unique
+}
